@@ -297,6 +297,11 @@ end
 function M.launch(args)
   if job.process then
     vim.fn.jobstop(job.process)
+    job = {
+      queued = nil,
+      process = nil,
+      generation = {},
+    }
   end
 
   cmd = {M.texpresso_path, "-json", "-lines"}
