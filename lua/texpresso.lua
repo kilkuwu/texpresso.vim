@@ -138,14 +138,16 @@ M.fix = {}
 M.fixcursor = 0
 
 local function shrink(tbl, count)
-  for _ = count, #tbl - 1 do
+  -- Remove elements until the table's length equals 'count'
+  while #tbl > count do
     table.remove(tbl)
   end
 end
 
 local function expand(tbl, count, default)
-  for i = #tbl + 1, count do
-    table.insert(tbl, i, default)
+  -- Append elements until the table's length reaches 'count'
+  while #tbl < count do
+    tbl[#tbl + 1] = default
   end
 end
 
@@ -239,16 +241,19 @@ function M.attach(...)
 end
 
 -- Public API
+M.use_vim_theme = false
 
 -- Use VIM theme in TeXpresso
 function M.theme()
-  local colors = vim.api.nvim_get_hl_by_name("Normal", true)
-  if colors.background and colors.foreground then
-    M.send(
-      "theme",
-      format_color(colors.background),
-      format_color(colors.foreground)
-    )
+  if M.use_vim_theme then
+    local colors = vim.api.nvim_get_hl_by_name("Normal", true)
+    if colors.background and colors.foreground then
+      M.send(
+        "theme",
+        format_color(colors.background),
+        format_color(colors.foreground)
+      )
+    end
   end
 end
 
@@ -291,8 +296,9 @@ end
 -- Start a new TeXpresso viewer
 function M.launch(args)
   if job.process then
-    vim.fn.chanclose(job.process)
+    vim.fn.jobstop(job.process)
   end
+
   cmd = {M.texpresso_path, "-json", "-lines"}
 
   if #args == 0 then
